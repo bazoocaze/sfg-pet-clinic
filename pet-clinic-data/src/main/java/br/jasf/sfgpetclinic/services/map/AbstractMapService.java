@@ -1,34 +1,49 @@
 package br.jasf.sfgpetclinic.services.map;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import br.jasf.sfgpetclinic.model.BaseEntity;
 
-public abstract class AbstractMapService<T, ID> {
+import java.util.*;
 
-	protected Map<ID, T> map = new HashMap<>();
+public abstract class AbstractMapService<T extends BaseEntity, ID extends Long> {
 
-	Set<T> findAll() {
-		return new HashSet<>(map.values());
-	}
+    protected Map<Long, T> map = new HashMap<>();
 
-	T findById(ID id) {
-		return map.get(id);
-	}
+    Set<T> findAll() {
+        return new HashSet<>(map.values());
+    }
 
-	T save(ID id, T object) {
-		map.put(id, object);
+    T findById(ID id) {
+        return map.get(id);
+    }
 
-		return object;
-	}
+    T save(T object) {
 
-	void deleteById(ID id) {
-		map.remove(id);
-	}
+        if (object != null) {
+            if (object.getId() == null) {
+                object.setId(getNextId());
+            }
+            map.put(object.getId(), object);
+        } else {
+            throw new RuntimeException("Object cannot be null");
+        }
 
-	void delete(T object) {
-		map.entrySet().removeIf(entry -> entry.getValue().equals(object));
-	}
-	
+        return object;
+    }
+
+    void deleteById(ID id) {
+        map.remove(id);
+    }
+
+    void delete(T object) {
+        map.entrySet().removeIf(entry -> entry.getValue().equals(object));
+    }
+
+    private Long getNextId() {
+        try {
+            return Collections.max(map.keySet()) + 1L;
+        } catch (NoSuchElementException e) {
+            return 1L;
+        }
+    }
+
 }
